@@ -1,38 +1,26 @@
 package main
 
 import (
-    "io"
     "log"
     "net"
     "time"
-    "os"
     "encoding/binary"
 )
 
 const WARMUP = 1000
 const MESSAGES = 10000
 
-func reader(r io.Reader) {
+func echoServer(c net.Conn, index int) {
+    //listen to the hello message
     buf := make([]byte, 1024)
-    for {
-        n, err := r.Read(buf[:])
-        if err != nil {
-            return
-        }
-        println("Client got:", string(buf[0:n]))
-    }
-}
-
-func main() {
-    address := "127.0.0.1:8080"
-    c, err := net.Dial("tcp",address)
-    if err != nil{
-        println("CONNECTION ERROR ", err.Error())
-        os.Exit(1)
+    _, err := c.Read(buf)
+    if err != nil {
+        return
     }
 
-    time.Sleep(5 * time.Second)
+    time.Sleep(5*time.Second)
 
+    //send message to the client
     counter := 0
     for {
         buffer := make([]byte, 1024)
@@ -49,6 +37,21 @@ func main() {
         }
         counter++
     }
-    println("Client exits: ", os.Args[1])
-    c.Close()
+    println("Done")
+}
+
+func main() {
+    l, _ := net.Listen("tcp", ":8080")  
+    index := 0
+    println("Fanout Server")
+    for {
+        fd, err := l.Accept()
+        println("Grab one client")
+        if err != nil {
+            log.Fatal("accept error:", err)
+        }
+
+        go echoServer(fd, index)
+        index++
+    }
 }

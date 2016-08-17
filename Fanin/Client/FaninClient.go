@@ -56,6 +56,6 @@ func main() {
         }
         counter++
     }
-    println("Client exists: ", os.Args[1])
+    println("Client exits: ", os.Args[1])
     c.Close()
 }
